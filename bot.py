@@ -26,13 +26,18 @@ intents.members = True
 client = Bot(command_prefix=commands.when_mentioned_or('.'), intents=intents, help_command=None)
 
 
+#-------------------------------------------------------------
+#PARA SINCRONIZAR LOS COMANDOS DE BARRA STABLECER ESTO EN TRUE
+sync_comandos = False
+#-------------------------------------------------------------
+
 
 @client.event
 async def on_ready():
     print(f"¡Si ves esto {client.user.name} esta online! ")
     print("-----------------------------------")
     status_task.start()
-    if False:
+    if sync_comandos:
         print("Sincronizando los comandos de barra, esto puede tardar bastante...")
         await client.tree.sync()
 
