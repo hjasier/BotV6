@@ -64,8 +64,5 @@ async def load_cogs():
 
 
 
-#test
-
-
 asyncio.run(load_cogs())
 client.run(TOKEN)
