@@ -1,0 +1,342 @@
+import platform
+import random
+import aiohttp
+import discord
+from discord import app_commands
+from discord.ext import commands
+from discord.ext.commands import Context
+from discord.app_commands import Choice
+from typing import List
+import asyncio
+from easy_pil import *
+import requests        
+from PIL import Image,ImageDraw, ImageFilter
+from PIL import features 
+import io
+from io import BytesIO
+from discord import File
+from pymongo import MongoClient
+from dotenv import load_dotenv
+import asyncio
+import datetime
+import os
+import string
+load_dotenv()
+cluster = MongoClient(os.getenv('MONGO_URL'))
+db = cluster["database"]
+usersdb = db["usuarios"]
+
+
+
+#-----------------------------------------------------------------------------------------------------------------
+#            SISTEMA DE NIVELES
+#-----------------------------------------------------------------------------------------------------------------
+
+async def process_level_system(message):
+    for data in usersdb.find({'_id':message.author.id}):
+        contador_mensajes = data['cur_msgs'] + 1
+        cur_xp = data['xp']
+        level = data['level']
+    if random.randint(0,5) == 3:
+        print('Reward')
+        random_xp = round(random.uniform(15.0,25.0),5)
+        cur_xp += random_xp
+        t_req_xp = 0
+        for x in range(0,level+1):
+            t_req_xp += (5 * (x ** 2) + (50 * x) + 100) #El total de toda la xp requerida para subir de nivel 
+        if cur_xp >= t_req_xp:
+            level = level+1
+            await levelear_user(message,level)
+    usersdb.update_one({'_id':message.author.id},{"$set":{'xp':cur_xp,'level':level,'cur_msgs':contador_mensajes}})
+    
+    
+    
+        
+async def levelear_user(name,lvl):
+    #await client.change_presence(activity=discord.Game("{name} ha subido a lvl {lvl}"))
+    return
+        
+        
+        
+        
+#-----------------------------------------------------------------------------------------------------------------        
+ 
+        
+
+class levels(commands.Cog, name="levels"):
+    def __init__(self, client):
+        self.client = client
+
+
+        @client.event
+        async def on_voice_state_update(member, before, after):
+          #print('Evento Voz')
+          if member.bot:
+            return
+          if not member.voice is None and member.voice.channel.id == 1006149775038627865: #Si el user esta dentro del canal [Se mete]
+            usersdb.update_one({'_id':member.id},{"$set":{'last_vc':datetime.datetime.now()}})
+          else: #Si el user no esta en el canal [Se sale]
+            for data in usersdb.find({'_id':member.id}):
+              join = data['last_vc']
+              cur_t = data['tiempo_en_llamada']
+              cur_xp = data['xp']
+              level = data['level']
+            if not join == 0:
+              diferencia = (datetime.datetime.now() - join).total_seconds()
+              cur_xp += (random.uniform(0.75,1.0)*diferencia)
+              
+              while True:
+                t_req_xp = 0
+                for x in range(0,level+1):
+                    t_req_xp += (5 * (x ** 2) + (50 * x) + 100) #El total de toda la xp requerida para subir de nivel 
+                if cur_xp >= t_req_xp:          
+                  level += 1
+                else:
+                  break
+
+              usersdb.update_one({'_id':member.id},{"$set":{'tiempo_en_llamada':cur_t+diferencia,'last_vc':0,'xp':cur_xp,'level':level}})
+              
+
+
+
+
+
+
+
+
+    @commands.hybrid_command(name="rank",description="Tu rank",)
+    async def rank(self, ctx: Context, *,member: discord.Member = None):
+      if not member:  
+        member = ctx.message.author  
+      esperamsg = await ctx.send('<a:emoji_name:1058417728664387624>')
+      for data in usersdb.find({'_id':member.id}):
+        cur_xp = data['xp']
+        cur_lvl = data['level']
+        user_personalización = data['personalización_rank']
+        
+      user_rank = list(reversed(sorted([users_data['xp'] for users_data in usersdb.find()]))).index(cur_xp)
+      t_req_xp = 0
+      
+      for x in range(0,cur_lvl):
+        t_req_xp += (5 * (x ** 2) + (50 * x) + 100) 
+      lvl_xp = (5 * ((cur_lvl+1 )** 2) + (50 * (cur_lvl+1)) + 100)
+      cur_lvl_xp = cur_xp - t_req_xp 
+      
+
+      #--------------Personalización--------------
+      color_borde = user_personalización[0]
+      color_porcentaje = user_personalización[1]
+      color_datos= user_personalización[2]
+      user_fondo = user_personalización[4]
+      label_oscuro = user_personalización[3]
+      fondo_extra = user_personalización[5]
+      #-------------------------------------------
+                
+      percentage = ((cur_lvl_xp*100)/lvl_xp)
+      if percentage < 5:
+        percentage+=5
+      
+      response = requests.get(user_fondo)
+      backimg = Image.open(BytesIO(response.content))
+      background = Editor(backimg)
+      
+      #--------------HUD--------------
+      espacio_datos = Editor('/home/bot/BotV6/Duricleto/cogs/archivos/media/test2.png')
+      if label_oscuro == 1:
+        #sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+diconoIN.jpg")
+        rank_datos = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/label_datosIN.png")   
+      else:
+        #sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+dicono.png")
+        rank_datos = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/rank_datos.png")
+      
+        
+      profile = await load_image_async(str(member.avatar))
+      background = Editor(background).resize((942, 333))
+      #sello  = Editor(sello).resize((38, 25))
+      rank_datos  = Editor(rank_datos).resize((333, 26))
+      espacio_datos  = Editor(espacio_datos).resize((383, 83))
+      profile = Editor(profile).resize((150, 150)).circle_image()
+      
+
+      unisansbold_pequeño = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=36)
+      unisansbold = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=48)
+      unisansbold2 = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=36)
+      unisans = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansRegular.otf", size=22)
+      #-------------------------------------------
+      
+      if fondo_extra == 1:
+        background_extra = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/fondoextra.png")
+        background_extra  = Editor(background_extra).resize((919, 313))
+        background.paste(background_extra.image, (14, 14))#BACKGROUND EXTRA
+        
+      background.paste(profile.image, (59, 77))#PERFIL
+      #background.paste(sello.image, (24, 22))#+D
+      background.paste(rank_datos.image, (543, 45))#RANK NIVEL XP
+      background.paste(espacio_datos.image, (526, 105)).blend(background)#Rectangulo Datos como Imagen
+
+
+      background.rectangle((0, 0), width=942, height=10, fill=color_borde)
+      background.rectangle((0, 323), width=942, height=10, fill=color_borde)
+      background.rectangle((932, 0), width=10, height=333, fill=color_borde)
+      background.rectangle((0, 0), width=10, height=333, fill=color_borde)
+
+      background.rectangle((249, 220), width=650, height=51, fill="white", radius=24)#Fondo del %
+      background.bar((249, 220), max_width=650, height=51, percentage=percentage ,fill=color_porcentaje, radius=31)#%
+      if len(member.name) > 8:
+        background.text((244, 100), str(f'{member.name[0:13]}'), font=unisansbold_pequeño, color=color_datos)#Nombre pequeño
+      else:
+        background.text((244, 100), str(member.name), font=unisansbold, color=color_datos)#Nombre Grande
+
+      #background.rectangle((526, 104), width=383, height=83, fill="white",radius=34)#Rectangulo Datos
+      
+
+      background.text((560, 129), f"#{user_rank+1}", font=unisansbold2, color=color_datos) #Posición en el ranking
+      background.text((686, 129), f"{cur_lvl}", font=unisansbold2, color=color_datos) #Nivel user
+      background.text((779, 129), f"{round(cur_xp,2)}", font=unisansbold2, color=color_datos) #XP del user
+
+      background.text((746, 285), f"{round(lvl_xp-(lvl_xp-cur_lvl_xp),2)} / {lvl_xp} XP", font=unisans, color="#EEEEEE")#Restante
+      file = File(fp=background.image_bytes, filename="rank.png")
+      await esperamsg.delete()
+      await ctx.send(file=file)
+
+
+
+
+    @commands.hybrid_command(name="vozrank",description="Te envia tus estadístiacas en el canal barra",)
+    async def vozrank(self, ctx: Context, *,member: discord.Member = None):
+      if not member:  
+        member = ctx.message.author  
+      esperamsg = await ctx.send('<a:emoji_name:1058417728664387624>')
+      
+      
+      for data in usersdb.find({'_id':member.id}):
+        tiempo_en_llamada = data['tiempo_en_llamada']
+        color_borde = '#FFFFFF'
+
+      días = round(tiempo_en_llamada/60/60/24)
+      horas = round(tiempo_en_llamada/3600-días*24)
+      minutos = round(tiempo_en_llamada/60 - horas*60 - días*24*60)
+      segundos = round(tiempo_en_llamada - horas*60 - días*24*60 - minutos*60)
+      
+      
+      user_rank = list(reversed(sorted([users_data['tiempo_en_llamada'] for users_data in usersdb.find()]))).index(tiempo_en_llamada) +1
+      
+      
+      t_req_xp = 0
+
+      dias_label = 'DÍAS'
+      if días == 1:
+        dias_label = 'DÍA'
+        
+      response = requests.get('https://media.discordapp.net/attachments/718522569820602471/1058806013148540938/Dance_To_Forget.jpg?width=1100&height=619')
+      backimg = Image.open(BytesIO(response.content))
+      background = Editor(backimg)
+      sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+tgicono.png")
+      profile = await load_image_async(str(member.avatar))
+      background = Editor(background).resize((942, 550))
+      sello  = Editor(sello).resize((61, 27))
+      profile = Editor(profile).resize((175, 175)).circle_image()
+      unisansbold_grande = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=110)
+      unisansbold_grande2 = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=140)
+      unisansbold = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=50)
+      unisansbold2 = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=36)
+      unisans = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansRegular.otf", size=32)
+      unisansmall = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansRegular.otf", size=22)
+
+      background_extra = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/fondoextra.png")
+      background_extra  = Editor(background_extra).resize((1300, 550))
+      background.paste(background_extra.image, (14, 14))#BACKGROUND EXTRA
+      background.paste(profile.image, (383, 100))#PERFIL
+      background.paste(sello.image, (26, 26))#+D
+      background.rectangle((0, 0), width=942, height=10, fill='#fff')
+      background.rectangle((0, 540), width=942, height=10, fill='#fff')
+      background.rectangle((932, 0), width=10, height=550, fill='#fff')
+      background.rectangle((0, 0), width=10, height=550, fill='#fff')
+
+      background.text((305, 25), str(f'Tiempo total en #taberna-barra🍻'), font=unisans, color='#fff')
+      background.text((400, 310), str(f'{member.name[0:13]}'), font=unisansbold, color='#fff')#Nombre
+      background.text((400, 380), f"{horas} horas", font=unisansbold2, color='#fff')
+      background.text((400, 425), f"{minutos} minutos", font=unisansbold2, color='#fff')
+      background.text((400, 475), f"{segundos} segundos ", font=unisansbold2, color='#fff')
+      background.text((750, 505), str(f'Desde 01/01/2023'), font=unisansmall, color='#fff')
+
+      background.text((137, 195), str(f'{días}'), font=unisansbold_grande, color='#F5FF52')
+      background.text((97, 315), str(f'{dias_label}'), font=unisansbold_grande, color='#F5FF52')
+
+      background.text((693, 208), str(f'#{user_rank}'), font=unisansbold_grande2, color='#F5FF52')
+
+      file = File(fp=background.image_bytes, filename="voz_rank.png")
+      await esperamsg.delete()
+      await ctx.send(file=file)
+
+
+
+
+    @commands.hybrid_command(name="editar_rank",description="Te envia el link para editar tu rank",)
+    async def editar_rank(self, ctx: Context):
+        random_id = ''.join(random.choice(string.ascii_lowercase) for i in range(6))
+        usersdb.update_one({'_id':ctx.author.id},{"$set":{'rank_passw':random_id,'name':ctx.author.name,'avatar':str(ctx.author.avatar)}})
+        await ctx.author.send(f'https://embed.tabernagogorra.ga/personalizar_rank/{random_id}/{ctx.author.id}')
+        await ctx.send("¡link enviado!, Mira DM para continuar <a:emoji_name:1058417728664387624>", ephemeral=True)
+
+
+
+
+
+async def setup(client):
+    await client.add_cog(levels(client))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,161 @@
+import platform
+import random
+
+import aiohttp
+import discord
+from discord import app_commands
+from discord.ext import commands
+from discord.ext.commands import Context
+from discord.app_commands import Choice
+from discord.utils import get
+from typing import List
+import nacl
+from youtube_search import YoutubeSearch 
+from youtubesearchpython import *
+import json
+import os
+import youtube_dl
+import datetime
+import wavelink
+import asyncio
+
+class btns_control_musica(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None) 
+
+
+
+    @discord.ui.button(label="Play ",custom_id="play_song", style=discord.ButtonStyle.green)
+    async def play_callback(self, button, interaction):
+        #Reproducir canción
+        return 
+
+    @discord.ui.button(label="Pause ",custom_id="pause_song", style=discord.ButtonStyle.red)
+    async def pause_callback(self, button, interaction):
+        #Parar canción
+        return 
+
+
+    @discord.ui.button(label="Next ",custom_id="next_song", style=discord.ButtonStyle.blurple)
+    async def next_btn_callback(self, button, interaction):
+        #Siguiente canción
+        return 
+
+
+
+
+
+
+async def enviar_control_audio(channel):
+    embed=discord.Embed(title="[04:28] - 21 Savage, Offset, Metro Boomin, Travis Scott - Ghostface Killers (feat. Travis Scott)", color=0xa600ff)
+    embed.set_image(url="https://media.discordapp.net/attachments/718522569820602471/1060706559245684766/white-background-300x300.png")
+    embed.add_field(name="Canciones en cola", value="1", inline=False)
+    await channel.send(embed=embed, view=btns_control_musica())
+   
+
+
+class musica(commands.Cog, name="musica"):
+    def __init__(self, client):
+        self.client = client
+
+
+        async def  reproducir_canción(url,ctx):
+            os.system('youtube-dl --rm-cache-dir')
+            voice = get(client.voice_clients, guild=ctx.guild)
+            if voice == None:
+                channel = ctx.message.author.voice.channel
+                await channel.connect(reconnect=True)
+            if voice.is_playing():
+                return await ctx.send("aquí se añadiría a la playlist")
+            FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+            YDL_OPTIONS = {'format': 'bestaudio/best', 'noplaylist':'True'}
+            try:
+                voice = get(client.voice_clients, guild=ctx.guild)
+                with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    I_URL = info['formats'][0]['url']
+                    source = await discord.FFmpegOpusAudio.from_probe(I_URL, **FFMPEG_OPTIONS)
+                    voice.play(source)
+                    voice.is_playing()
+            except Exception as e:
+                errormsg = await ctx.send(f'```{e}```')
+
+
+
+        async def buscar_track_youtube(url,ctx):
+            yt = YoutubeSearch(url, max_results=1).to_json()
+            try:
+                yt_id = str(json.loads(yt)['videos'][0]['id'])
+                url = 'https://www.youtube.com/watch?v='+yt_id
+                duración_canción = str(json.loads(yt)['videos'][0]['duration'])       
+                nombre_track = str(json.loads(yt)['videos'][0]['title'])
+                nombre_autor= str(json.loads(yt)['videos'][0]['channel'])
+                try:
+                    canción_foto = str(json.loads(yt)['videos'][0]['thumbnails'][1])
+                except:
+                    canción_foto = str(json.loads(yt)['videos'][0]['thumbnails'][0])
+            except Exception as e: 
+                await ctx.send(f'No hay resultados para ``{url}``')
+                return
+            await ctx.send(f"Reproduciendo : {nombre_track}")
+            await ctx.send(f"Reproduciendo : {url}")
+
+            return await reproducir_canción(url,ctx)
+
+        
+        @client.command()
+        async def music_test(ctx):
+            await enviar_control_audio(ctx.channel)
+
+
+        @client.command(aliases=['p','P','PLAY2'])
+        async def play2(ctx,*url):
+
+            url = ' '.join(url)
+            try:
+                channel = ctx.message.author.voice.channel
+                voice = get(client.voice_clients, guild=ctx.guild)
+                if voice == None:
+                    channel = ctx.message.author.voice.channel
+                #await channel.connect(reconnect=True)
+            except:
+                return await ctx.send('No estas conectado a ningún canal de voz')
+            return await buscar_track_youtube(url,ctx)
+
+
+        @client.command()
+        async def anunciox(ctx):
+            # Gets voice channel of message author
+            voice_channel1 = ctx.message.author.voice.channel
+            voice_channel = discord.utils.get(ctx.guild.voice_channels, name='∞¢ Sin más ¢∞ 🔊♦')
+            channel = None
+            links = ["https://cdn.discordapp.com/attachments/792803193330597898/856553746909102080/Cansado_de_los_anuncios.mp3","https://cdn.discordapp.com/attachments/792803193330597898/856316008369356820/Anuncio_Boost_Server.mp3","https://cdn.discordapp.com/attachments/792803193330597898/856305065962111027/Buenas--sabias-que-con-Diriyi1624228957.mp3"]
+            if voice_channel != None:
+                channel = voice_channel.name
+                vc = await voice_channel.connect()
+                vc.play(discord.FFmpegPCMAudio(source=(random.choice(links))))
+                # Sleep while audio is playing.
+                while vc.is_playing():
+                   await asyncio.sleep(.1)
+                await vc.disconnect()
+            else:
+                await ctx.send("no estas en ningun canal de voz")
+            # Delete command after the audio is done playing.
+            await ctx.message.delete()
+
+        @client.command()
+        async def playSound(ctx, channel, file, bot, connected):  
+            voice_channel = ctx.message.author.voice.channel
+            vc = await voice_channel.connect()
+            # ctx = ctx.message # i dont know what its doing, so i commented it out
+            vc = await connected.channel.connect()
+            await ctx.send("intentando playear")
+            vc.play(discord.FFmpegPCMAudio("https://cdn.discordapp.com/attachments/792803193330597898/856553746909102080/Cansado_de_los_anuncios.mp3"))
+            while vc.is_playing():
+                await asyncio.sleep(1)
+            # await vc.stop() # its gonna stop at the end, so i just commented it out too
+            await vc.disconnect()
+            os.remove(file)
+
+async def setup(client):
+    await client.add_cog(musica(client))
