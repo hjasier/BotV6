@@ -97,18 +97,19 @@ class btn_server_mining(discord.ui.View):
         if not button.user.id in usuarios:
             miningdb.insert_one({'_id':button.user.id,'type':'user','game_nick':'NotSet'})
             await button.response.send_message("¡Listo!, Mira DM para continuar <a:emoji_name:1049804966627393567>", ephemeral=True)
-            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.ga/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
+            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.eu/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
             embed2.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056600080989294652/1200px-Icon-doc.png?width=599&height=756')
-            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.ga/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
+            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.eu/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
             embed3.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056601597578330212/745139.png')
             await button.user.send(embed=embed2)
-            await button.user.send('https://docs.tabernagogorra.ga')
+            await button.user.send('https://docs.tabernagogorra.eu')
             await button.user.send(embed=embed3)
             embed = discord.Embed(title="Establecer nombre ingame",description="Desde aquí podrás añadirte a la whitelist del server con el nombre que uses en minecratf",color=0x7440FF)
             await button.user.send(embed=embed, view=btn_establecer_nombre_whitelist())
             await update_lista()
             role = get(button.guild.roles, id=1047818594693697619)
             await button.user.add_roles(role)
+                        
         else:
             await button.response.send_message("¡Ya estás inscrit@ al server! <a:emoji_name:1049804966627393567>", ephemeral=True)
             return
@@ -216,7 +217,7 @@ class server_mining(commands.Cog):
                     disc_nick = client.get_user(usuario['_id']).name
                     embed.add_field(name= (disc_nick), value=(game_nick), inline=True)
                 else: #no esta en el server
-                    miningdb.delete_one({'_id':usuario.id})
+                    miningdb.delete_one({'_id':usuario['_id']})
                     
             channel = client.get_channel(1047988791199137902)
             mensaje = await channel.fetch_message(1048192302012702780)
@@ -287,12 +288,12 @@ class server_mining(commands.Cog):
         @client.command()
         async def anunciar_actualización_mods_a_versión(ctx,*versión):
             versión = ' '.join(versión)
-            embed=discord.Embed(title=f"**Versión de Mods Actual** --> ``{versión}``",url="https://docs.tabernagogorra.ga/mods", color=0xdaff24)
+            embed=discord.Embed(title=f"**Versión de Mods Actual** --> ``{versión}``",url="https://docs.tabernagogorra.eu/mods", color=0xdaff24)
             embed.set_footer(text="Si no sabes como actualizar los mods haz click en el título para ir a la guía de instalación de mods",icon_url="https://media.discordapp.net/attachments/1048018114161426493/1050754754248196176/output-onlinegiftools_2.gif")
             channel = client.get_channel(1049806428380069918)
             mensaje = await channel.fetch_message(1051134515873054742)
             await mensaje.edit(embed=embed)
-            embed=discord.Embed(title=f"**Nueva Actualización Mods Server ``{versión}``**", url="https://docs.tabernagogorra.ga/mods", description="Para poder acceder al server es necesario que tengas la última versión de los mods instalada",color=0xcdff05)
+            embed=discord.Embed(title=f"**Nueva Actualización Mods Server ``{versión}``**", url="https://docs.tabernagogorra.eu/mods", description="Para poder acceder al server es necesario que tengas la última versión de los mods instalada",color=0xcdff05)
             embed.set_thumbnail(url="https://media.discordapp.net/attachments/1048018114161426493/1050754388748140554/output-onlinegiftools_1.gif?width=1196&height=897")
             embed.set_footer(text="Si no sabes como actualizar los mods haz click en el botón para ir a la guía de actualización",icon_url="https://media.discordapp.net/attachments/1048018114161426493/1050754754248196176/output-onlinegiftools_2.gif")
 
@@ -302,23 +303,37 @@ class server_mining(commands.Cog):
         
 
         @client.command()
-        async def anunciar_estreno_server(ctx):
+        async def anunciar_estreno_server_user(ctx,user:discord.Member):
+            embed1=discord.Embed(title="Inauguración Server VII", description="¡¡ El server empieza oficialmente hoy, día 25 a las 17:40 !!", color=0xff00dd)
+            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.eu/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
+            embed2.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056600080989294652/1200px-Icon-doc.png?width=599&height=756')
+            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.eu/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
+            embed3.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056601597578330212/745139.png')
+            await user.send(embed=embed1)
+            await user.send(embed=embed2)
+            await user.send('https://docs.tabernagogorra.eu')
+            await user.send(embed=embed3)
+            await user.send('https://docs.tabernagogorra.eu/programacion')
+            print(f'Enviado a {user.name}')
+
+            
+        @client.command()
+        async def anunciar_estreno_server(ctx,):
             return
             embed1=discord.Embed(title="Inauguración Server VII", description="¡¡ El server empieza oficialmente hoy, día 25 a las 17:40 !!", color=0xff00dd)
-            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.ga/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
+            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.eu/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
             embed2.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056600080989294652/1200px-Icon-doc.png?width=599&height=756')
-            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.ga/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
+            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.eu/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
             embed3.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056601597578330212/745139.png')
             for user in miningdb.find({'type':'user'}):
                     user = client.get_user(user['_id'])
                     await user.send(embed=embed1)
                     await user.send(embed=embed2)
-                    await user.send('https://docs.tabernagogorra.ga')
+                    await user.send('https://docs.tabernagogorra.eu')
                     await user.send(embed=embed3)
-                    await user.send('https://docs.tabernagogorra.ga/programacion')
+                    await user.send('https://docs.tabernagogorra.eu/programacion')
                     print(f'Enviado a {user.name}')
 
-            
 
 
 
@@ -364,18 +379,19 @@ async def setup(client):
     
 def update_whitelist(name,old):
     data = {"grant_type": "client_credentials","client_id": os.getenv('PUFFER_CLIENT_ID'),"client_secret": os.getenv('PUFFER_TOKEN')}
-    r = requests.post(f"https://servers.tabernagogorra.ga/oauth2/token", data=data)    
+    r = requests.post(f"https://servers.tabernagogorra.eu/oauth2/token", data=data)    
     new_whitelist = []
     for usuario in miningdb.find({'type':'user'}):
         user_ui = requests.get(f"http://tools.glowingmines.eu/convertor/nick/{usuario['game_nick']}").json()
         new_whitelist.append({'uuid':user_ui['offlinesplitteduuid'],'name':usuario['game_nick']})
-    with open(f'/var/lib/pufferpanel/servers/{mcserver}/whitelist.json', 'w') as archivo:
-        json.dump(new_whitelist, archivo)
+    
+    #with open(f'/var/lib/pufferpanel/servers/{mcserver}/whitelist.json', 'w') as archivo:
+        #json.dump(new_whitelist, archivo)
 
     headers = {'accept': 'application/json','Content-Type': 'application/json','Authorization':"Bearer " + r.json()["access_token"]}
     if not old == 'NotSet':
-        requests.post(f"https://servers.tabernagogorra.ga/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist remove {old}')
-    resp = requests.post(f"https://servers.tabernagogorra.ga/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist add {name}')
+        requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist remove {old}')
+    resp = requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist add {name}')
 
     return 204
         
@@ -383,11 +399,11 @@ def update_whitelist(name,old):
 
 def reiniciar_servidor_MC():
     data = {"grant_type": "client_credentials","client_id": os.getenv('PUFFER_CLIENT_ID'),"client_secret": os.getenv('PUFFER_TOKEN')}
-    r = requests.post(f"https://servers.tabernagogorra.ga/oauth2/token", data=data)
+    r = requests.post(f"https://servers.tabernagogorra.eu/oauth2/token", data=data)
     headers = {'accept': 'application/json','Content-Type': 'application/json','Authorization':"Bearer " + r.json()["access_token"]}
-    requests.post(f"https://servers.tabernagogorra.ga/proxy/daemon/server/{mcserver}/stop", headers=headers)
+    requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/stop", headers=headers)
     time.sleep(0.3)
-    resp = requests.post(f"https://servers.tabernagogorra.ga/proxy/daemon/server/{mcserver}/start", headers=headers)
+    resp = requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/start", headers=headers)
     return 204
   
   

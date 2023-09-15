@@ -34,6 +34,7 @@ intents.members = True
 intents.voice_states = True
 
 
+
 client = Bot(command_prefix=commands.when_mentioned_or('.'), intents=intents, help_command=None)
 
 
@@ -76,9 +77,11 @@ async def status_task():
     else:
         await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="a tu mai gemir"))
 
+
+
 @client.event
 async def on_message(message: discord.Message):
-    if message.author.bot:
+    if message.author.bot or message.guild is None:
         return
     if message.content.startswith('.'):
         await client.process_commands(message)
