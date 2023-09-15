@@ -78,12 +78,12 @@ class levels(commands.Cog, name="levels"):
           else: #Si el user no esta en el canal [Se sale]
             for data in usersdb.find({'_id':member.id}):
               join = data['last_vc']
-              cur_t = data['tiempo_en_llamada']
+              cur_t = data['tiempo_en_llamada']['2023']
               cur_xp = data['xp']
               level = data['level']
             if not join == 0:
               diferencia = (datetime.datetime.now() - join).total_seconds()
-              cur_xp += (random.uniform(0.75,1.0)*diferencia)
+              cur_xp += (random.uniform(0.25,0.75)*diferencia)
               
               while True:
                 t_req_xp = 0
@@ -119,9 +119,22 @@ class levels(commands.Cog, name="levels"):
       
       for x in range(0,cur_lvl):
         t_req_xp += (5 * (x ** 2) + (50 * x) + 100) 
-      lvl_xp = (5 * ((cur_lvl+1 )** 2) + (50 * (cur_lvl+1)) + 100)
-      cur_lvl_xp = cur_xp - t_req_xp 
-      
+      lvl_xp = (5 * ((cur_lvl)** 2) + (50 * (cur_lvl+1)) + 100)
+      cur_lvl_xp = cur_xp - t_req_xp
+
+      cur_lvl_xp_compl = round(lvl_xp-(lvl_xp-cur_lvl_xp),2) 
+      user_xp = round(cur_xp,2) 
+
+      if cur_lvl_xp_compl > 1000:
+        cur_lvl_xp_formateada = str(round(cur_lvl_xp_compl/1000,2))+"k"
+      if lvl_xp > 1000:
+        lvl_xp_formateada = str(round(lvl_xp/1000,2))+"k"
+
+
+      if user_xp > 100000:
+         user_xp = str(round(user_xp/1000,1)) +"k"
+      elif user_xp > 1000:
+         user_xp = str(round(user_xp/1000,2)) +"k"
 
       #--------------Personalización--------------
       color_borde = user_personalización[0]
@@ -143,19 +156,20 @@ class levels(commands.Cog, name="levels"):
       #--------------HUD--------------
       espacio_datos = Editor('/home/bot/BotV6/Duricleto/cogs/archivos/media/test2.png')
       if label_oscuro == 1:
-        #sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+diconoIN.jpg")
+        sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+tgiconoIN.png")
         rank_datos = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/label_datosIN.png")   
       else:
-        #sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+dicono.png")
+        sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+tgicono.png")
         rank_datos = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/rank_datos.png")
       
         
       profile = await load_image_async(str(member.avatar))
       background = Editor(background).resize((942, 333))
-      #sello  = Editor(sello).resize((38, 25))
+      sello  = Editor(sello).resize((55, 25))
       rank_datos  = Editor(rank_datos).resize((333, 26))
       espacio_datos  = Editor(espacio_datos).resize((383, 83))
       profile = Editor(profile).resize((150, 150)).circle_image()
+      
       
 
       unisansbold_pequeño = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=36)
@@ -170,7 +184,7 @@ class levels(commands.Cog, name="levels"):
         background.paste(background_extra.image, (14, 14))#BACKGROUND EXTRA
         
       background.paste(profile.image, (59, 77))#PERFIL
-      #background.paste(sello.image, (24, 22))#+D
+      background.paste(sello.image, (24, 25))#+TG
       background.paste(rank_datos.image, (543, 45))#RANK NIVEL XP
       background.paste(espacio_datos.image, (526, 105)).blend(background)#Rectangulo Datos como Imagen
 
@@ -180,7 +194,7 @@ class levels(commands.Cog, name="levels"):
       background.rectangle((932, 0), width=10, height=333, fill=color_borde)
       background.rectangle((0, 0), width=10, height=333, fill=color_borde)
 
-      background.rectangle((249, 220), width=650, height=51, fill="white", radius=24)#Fondo del %
+      background.rectangle((252, 220), width=647, height=51, fill="white", radius=24)#Fondo del %
       background.bar((249, 220), max_width=650, height=51, percentage=percentage ,fill=color_porcentaje, radius=31)#%
       if len(member.name) > 8:
         background.text((244, 100), str(f'{member.name[0:13]}'), font=unisansbold_pequeño, color=color_datos)#Nombre pequeño
@@ -192,36 +206,44 @@ class levels(commands.Cog, name="levels"):
 
       background.text((560, 129), f"#{user_rank+1}", font=unisansbold2, color=color_datos) #Posición en el ranking
       background.text((686, 129), f"{cur_lvl}", font=unisansbold2, color=color_datos) #Nivel user
-      background.text((779, 129), f"{round(cur_xp,2)}", font=unisansbold2, color=color_datos) #XP del user
+      background.text((779, 129), f"{user_xp}", font=unisansbold2, color=color_datos) #XP del user
 
-      background.text((746, 285), f"{round(lvl_xp-(lvl_xp-cur_lvl_xp),2)} / {lvl_xp} XP", font=unisans, color="#EEEEEE")#Restante
+      background.text((746, 285), f"{cur_lvl_xp_formateada} / {lvl_xp_formateada} XP", font=unisans, color="#EEEEEE")#Restante
       file = File(fp=background.image_bytes, filename="rank.png")
       await esperamsg.delete()
       await ctx.send(file=file)
 
 
 
+    años_choices = [
+        app_commands.Choice(name='2023', value=0),
+    ]
 
     @commands.hybrid_command(name="vozrank",description="Te envia tus estadístiacas en el canal barra",)
-    async def vozrank(self, ctx: Context, *,member: discord.Member = None):
+    @app_commands.choices(año=años_choices) 
+    async def vozrank(self, ctx: Context, *,member: discord.Member = None, año:app_commands.Choice[int]=None):
       if not member:  
         member = ctx.message.author  
+      if not año:
+         año = '2023'
+      else:
+        año = año.name
       esperamsg = await ctx.send('<a:emoji_name:1058417728664387624>')
       
       
       for data in usersdb.find({'_id':member.id}):
-        tiempo_en_llamada = data['tiempo_en_llamada']
+        tiempo_en_llamada = data['tiempo_en_llamada'][año]
         color_borde = '#FFFFFF'
 
-      días = round(tiempo_en_llamada/60/60/24)
-      horas = round(tiempo_en_llamada/3600-días*24)
-      minutos = round(tiempo_en_llamada/60 - horas*60 - días*24*60)
-      segundos = round(tiempo_en_llamada - horas*60 - días*24*60 - minutos*60)
+      días = int(tiempo_en_llamada/60/60/24)
+      horas = int(tiempo_en_llamada/3600-(días*24))
+      minutos = int(tiempo_en_llamada/60 - horas*60 - días*24*60)
+      segundos = int(tiempo_en_llamada - horas*3600 - días*24*3600 - minutos*60)
+       
       
+      user_rank = list(reversed(sorted([users_data['tiempo_en_llamada']['2023'] for users_data in usersdb.find()]))).index(tiempo_en_llamada) +1
       
-      user_rank = list(reversed(sorted([users_data['tiempo_en_llamada'] for users_data in usersdb.find()]))).index(tiempo_en_llamada) +1
-      
-      
+
       t_req_xp = 0
 
       dias_label = 'DÍAS'
@@ -253,7 +275,7 @@ class levels(commands.Cog, name="levels"):
       background.rectangle((932, 0), width=10, height=550, fill='#fff')
       background.rectangle((0, 0), width=10, height=550, fill='#fff')
 
-      background.text((305, 25), str(f'Tiempo total en #taberna-barra🍻'), font=unisans, color='#fff')
+      background.text((305, 25), str(f'Tiempo total en #taberna-barra'), font=unisans, color='#fff')
       background.text((400, 310), str(f'{member.name[0:13]}'), font=unisansbold, color='#fff')#Nombre
       background.text((400, 380), f"{horas} horas", font=unisansbold2, color='#fff')
       background.text((400, 425), f"{minutos} minutos", font=unisansbold2, color='#fff')
@@ -276,11 +298,23 @@ class levels(commands.Cog, name="levels"):
     async def editar_rank(self, ctx: Context):
         random_id = ''.join(random.choice(string.ascii_lowercase) for i in range(6))
         usersdb.update_one({'_id':ctx.author.id},{"$set":{'rank_passw':random_id,'name':ctx.author.name,'avatar':str(ctx.author.avatar)}})
-        await ctx.author.send(f'https://embed.tabernagogorra.ga/personalizar_rank/{random_id}/{ctx.author.id}')
+        await ctx.author.send(f'https://embed.tabernagogorra.eu/personalizar_rank/{random_id}/{ctx.author.id}')
         await ctx.send("¡link enviado!, Mira DM para continuar <a:emoji_name:1058417728664387624>", ephemeral=True)
 
 
 
+    @commands.hybrid_command(name="ranklist",description="test",)
+    async def ranklist(self, ctx: Context):
+      top_users = usersdb.find().sort("tiempo_en_llamada", -1).limit(10)
+      embed=discord.Embed(title="Vozrank rank del server")
+      n = 0
+      for user in top_users:
+        n += 1
+        embed.add_field(name=f'{n}', value=f"{user['name']}", inline=False)
+      await ctx.send(embed=embed)
+      
+      
+         
 
 
 async def setup(client):

@@ -1,3 +1,4 @@
+import asyncio
 import platform
 import random
 
@@ -8,7 +9,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from discord.app_commands import Choice
 from typing import List
-
+import os
 
 class General(commands.Cog, name="general"):
     def __init__(self, bot):
@@ -94,7 +95,49 @@ class General(commands.Cog, name="general"):
 
 
 
+    @commands.hybrid_command(name="reiniciarmusikleto",description="Reinicia el bot de musicleto",)
+    async def reiniciarMusikleto(self, ctx: Context) -> None:
+        os.system("pm2 restart LavalinkServer")  
+        embed=discord.Embed(title="", color=0xffbb00)
+        embed.add_field(name="Bot ", value="Reiniciando 🔄", inline=False)
+        embed.add_field(name="Lavalink ", value="Reiniciando 🔄", inline=True)
+        msg = await ctx.send(embed=embed)
+        await asyncio.sleep(1)
+        os.system("pm2 restart playerbot")  
+        embed2=discord.Embed(title="", color=0xeeff00)
+        embed2.add_field(name="Bot ", value="Reiniciando ✅", inline=False)
+        embed2.add_field(name="Lavalink ", value="Reiniciando 🔄", inline=True)
+        await msg.edit(embed=embed2)
+        await asyncio.sleep(1)
+        embed3=discord.Embed(title="Musikleto reiniciado ✅", color=0x66ff00)
+        embed3.add_field(name="Bot ", value="Reiniciado ✅", inline=False)
+        embed3.add_field(name="Lavalink ", value="Reiniciado ✅", inline=True)
+        await msg.edit(embed=embed3)
+        
+                
 
+
+
+
+    @commands.hybrid_command(name="kaixo",description="Kaixo Egun ON Zelan Zaudete",)
+    async def kaixo(self, ctx: Context) -> None:
+        if not ctx.author.voice:
+            channel = self.client.get_channel(1006149775038627865)
+            try:
+                voice = await channel.connect()
+            except:
+                voice = discord.utils.get(ctx.guild.voice_channels, id=channel.id)
+        else:
+            try:
+                voice = await ctx.message.author.voice.channel.connect()
+            except:
+                voice = discord.utils.get(ctx.guild.voice_channels, id=ctx.message.author.voice.channel.id)         
+
+            
+            file = discord.FFmpegPCMAudio("/home/bot/BotV6/Duricleto/cogs/archivos/audios/Kaixo recortado.mp3")
+            voice.play(file);
+            await asyncio.sleep(3)
+            await voice.disconnect()
 
 
 
