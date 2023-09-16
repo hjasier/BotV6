@@ -75,8 +75,4 @@ async def on_ready():
 client.run(TOKEN)
 
 
-search = f'https://api.metrobilbao.eus/metro/real-time/ANS/BSR'
 
-proxTrenes = requests.get(search)
-
-print(proxTrenes)
