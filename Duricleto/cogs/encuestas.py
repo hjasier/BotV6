@@ -33,6 +33,7 @@ class EncuestaCog(commands.Cog):
 
         embed.set_footer(text="Numero de votos 0")
         await ctx.send(embed=embed)
+        
 
         
            
