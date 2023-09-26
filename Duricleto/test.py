@@ -67,12 +67,17 @@ async def on_ready():
 
 
 
+test = {0:[3,32],3:33}
+
+for n in test:
+    print(n)
+
+t3 = sum([2,32,3,])
+
+print("🟪" * 3)
 
 
-
-
-
-client.run(TOKEN)
+#client.run(TOKEN)
 
 
 
