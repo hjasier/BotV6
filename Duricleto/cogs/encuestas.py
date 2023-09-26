@@ -30,8 +30,9 @@ async def updateEmbed(ctx):
         prtj = "🟪" * round(porcentaje/10)
         
         embed.add_field(name=f"{opc}", value=f"{prtj}      {porcentaje}%", inline=False)
-    await ctx.message.edit(embed=embed)
     embed.set_footer(text=f"Numero de votos {total}")
+    await ctx.message.edit(embed=embed)
+    
     
     
         
