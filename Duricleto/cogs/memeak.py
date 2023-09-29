@@ -199,7 +199,8 @@ class memeak(commands.Cog, name="memeak"):
             embed.set_image(url=f'attachment://{file}')
             await channel.send(file=media, embed=embed, view=eliminar_mensaje_btn())  
         else:
-            await channel.send(content=f"```{titulo}```",file=media, view=eliminar_mensaje_btn())    
+            print("Enviando video")
+            await channel.send(file=media)    
 
 
         os.remove(ruta+file)
@@ -213,7 +214,7 @@ class memeak(commands.Cog, name="memeak"):
         # Ejecutar la función cada x tiempo
         while True:
             opciones = ["memedroid","reddit"]
-            pesos = [0.25, 0.75]
+            pesos = [0.05, 0.95]
             choice = random.choices(opciones, weights=pesos)[0]
             if choice == "memedroid":
                 await self.sendMemeKanalara()

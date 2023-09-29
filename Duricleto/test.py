@@ -67,14 +67,11 @@ async def on_ready():
 
 
 
-test = {0:[3,32],3:33}
+test = {'1156154783124688928': {'_id': 1156154783124688928, 'titulo': 'asdfasdf', 'opciones': ['sadf', 'asdf'], 'respuestas': {'0': [404342594940960779], '1': []}, 'author': 404342594940960779, 'chnnl': 718522569820602471}, '1156164781984731207': {'_id': 1156164781984731207, 'titulo': 'asdf', 'opciones': ['asdfa'], 'respuestas': {'0': [404342594940960779]}, 'author': 404342594940960779, 'chnnl': 718522569820602471}}
 
-for n in test:
-    print(n)
 
-t3 = sum([2,32,3,])
 
-print("🟪" * 3)
+print(test[1156154783124688928])
 
 
 #client.run(TOKEN)
