@@ -26,7 +26,7 @@ async def updateEmbed(ctx):
 
     total = sum([len(encuesta['respuestas'][vts]) for vts in encuesta['respuestas']])
     for opc in encuesta['opciones']:
-        porcentaje = (len(encuesta['respuestas'][encuesta['opciones'].index(opc)])/total)*100
+        porcentaje = (len(encuesta['respuestas'][str(encuesta['opciones'].index(opc))])/total)*100
         prtj = "🟪" * round(porcentaje/10)
         
         embed.add_field(name=f"{opc}", value=f"{prtj}      {porcentaje}%", inline=False)
@@ -46,14 +46,14 @@ async def votar_callback(select, embedmsg, encuestas_activas):
     for opc in range(len(encuesta['opciones'])):
         try:
             if str(opc) in encuesta['respuestas']:
-                if user_id in encuesta['respuestas'][opc]:
+                if user_id in encuesta['respuestas'][str(opc)]:
                     encuesta['respuestas'][str(opc)].remove(user_id)
             else:
                 encuesta['respuestas'][str(opc)] = []
         except:
             pass
     
-    encuesta['respuestas'][opcIndex].append(user_id)
+    encuesta['respuestas'][str(opcIndex)].append(user_id)
     await updateEmbed(select)
     await select.response.defer()
     
@@ -111,6 +111,7 @@ class EncuestaCog(commands.Cog):
     async def encuesta(self, ctx: Context, *, titulo: str, opción1: str = None , opción2: str = None,opción3: str = None,opción4: str = None,opción5: str = None,opción6: str = None,opción7: str = None,opción8: str = None,opción9: str = None,opción10: str = None):
         opciones = [opción1, opción2, opción3, opción4, opción5, opción6, opción7, opción8, opción9, opción10]
         opciones = [opcion for opcion in opciones if opcion is not None]
+        
         embed=discord.Embed(title=f"{titulo}")
 
         for opcion in opciones:
