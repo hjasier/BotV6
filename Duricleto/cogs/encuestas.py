@@ -146,6 +146,17 @@ class EncuestaCog(commands.Cog):
         global encuestas_activas
         encuestas_activas[embedmsg.id] = encuesta
         
+        
+    @commands.hybrid_command(name="encuestas",description="Lista y pointers a las encuestas")           
+    async def encuestas(self,ctx):
+        embed = discord.Embed(title="Lista de encuestas activas")
+        for enc in encuestas_activas:
+            encuesta = encuestas_activas[enc]
+            embed.add_field(name='\u200b', value=f'**{encuesta["titulo"]}** ➼ [``[ - Ir -]``](https://discord.com/channels/{encuesta["chnnl"]}/1006149775038627862/{encuesta["_id"]})'  , inline=False)
+        
+        await ctx.send(embed=embed)
+            
+        
                 
            
 

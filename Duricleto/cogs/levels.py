@@ -25,6 +25,7 @@ load_dotenv()
 cluster = MongoClient(os.getenv('MONGO_URL'))
 db = cluster["database"]
 usersdb = db["usuarios"]
+vozconxdatadb = db["vozconxdata"]
 
 
 
@@ -73,16 +74,18 @@ class levels(commands.Cog, name="levels"):
           #print('Evento Voz')
           if member.bot:
             return
-          if not member.voice is None and member.voice.channel.id == 1006149775038627865: #Si el user esta dentro del canal [Se mete]
+          if not member.voice is None and member.voice.channel.id == 1006149775038627865: 
+            #Si el user esta dentro del canal [Se mete]
             usersdb.update_one({'_id':member.id},{"$set":{'last_vc':datetime.datetime.now()}})
           else: #Si el user no esta en el canal [Se sale]
             for data in usersdb.find({'_id':member.id}):
               join = data['last_vc']
-              cur_t = data['tiempo_en_llamada']['2023']
+              cur_t = data['tiempo_en_llamada']
               cur_xp = data['xp']
               level = data['level']
             if not join == 0:
-              diferencia = (datetime.datetime.now() - join).total_seconds()
+              now = datetime.datetime.now()
+              diferencia = (now - join).total_seconds()
               cur_xp += (random.uniform(0.25,0.75)*diferencia)
               
               while True:
@@ -93,9 +96,12 @@ class levels(commands.Cog, name="levels"):
                   level += 1
                 else:
                   break
-
-              usersdb.update_one({'_id':member.id},{"$set":{'tiempo_en_llamada':cur_t+diferencia,'last_vc':0,'xp':cur_xp,'level':level}})
-              
+                
+              year = str(now.year)
+                
+              cur_t[year] =  cur_t[year]+diferencia
+              usersdb.update_one({'_id':member.id},{"$set":{'tiempo_en_llamada':cur_t,'last_vc':0,'xp':cur_xp,'level':level}})
+              vozconxdatadb.insert_one({'user_id':member.id,'join':join,'leave':now})
 
 
 
@@ -225,13 +231,14 @@ class levels(commands.Cog, name="levels"):
       if not member:  
         member = ctx.message.author  
       if not año:
-         año = '2023'
+         año = "2023"
       else:
         año = año.name
       esperamsg = await ctx.send('<a:emoji_name:1058417728664387624>')
       
       
       for data in usersdb.find({'_id':member.id}):
+        print(data['tiempo_en_llamada'])
         tiempo_en_llamada = data['tiempo_en_llamada'][año]
         color_borde = '#FFFFFF'
 

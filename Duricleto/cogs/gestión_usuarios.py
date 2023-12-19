@@ -72,7 +72,7 @@ class gestión_users(commands.Cog, name="gestión_users"):
 
         @client.command()
         async def act_info_users_error(ctx):
-            return
+            return 
             cusers = []
             for user in usersdb.find():
                 if not type(user['tiempo_en_llamada']) is dict:
