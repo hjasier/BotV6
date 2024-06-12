@@ -18,12 +18,12 @@ import time
 TOKEN = os.getenv('DISCORD_TOKEN')
 cluster = MongoClient(os.getenv('MONGO_URL'))
 usersdb = cluster["database"]["usuarios"]
-miningdb = cluster["database"]["mining_server"]
+miningdb = cluster["database"]["mining_server2"]
 
 #--------------------------------------------------------
 #Esto habría que importarlo desde el main con una clase y no definirlo en cada archrivo, pero con los cogs es raro
 
-mcserver = '2a11547d'
+mcserver = 'nuevoserverid'
 
 
 
@@ -90,9 +90,9 @@ class btn_server_mining(discord.ui.View):
         super().__init__(timeout=None)
         
 
-    @discord.ui.button(label="Apuntarme 🎫",custom_id="enroll_user_server_mining", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="Apuntarme 🎫",custom_id="enroll_user_server_mining", style=discord.ButtonStyle.red)
     async def button_callback(self, button, interaction):
-        #return await button.response.send_message("La whitelist ha sido desactivada, se activará el 19 de diciembre <a:emoji_name:1049804966627393567>", ephemeral=True)
+        return await button.response.send_message("¡El servidor ya ha acabado, te espero en el siguiente server!  :D  <a:emoji_name:1049804966627393567>", ephemeral=True)
         usuarios = [user['_id'] for user in miningdb.find({'type':'user'})]
         if not button.user.id in usuarios:
             miningdb.insert_one({'_id':button.user.id,'type':'user','game_nick':'NotSet'})
@@ -111,6 +111,26 @@ class btn_server_mining(discord.ui.View):
             await button.user.add_roles(role)
                         
         else:
+            await button.response.send_message("¡Ya estás inscrit@ al server! <a:emoji_name:1049804966627393567>", ephemeral=True)
+            return
+
+class btn_server_mining2(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        
+
+    @discord.ui.button(label="Apuntarme 🎫",custom_id="enroll_user_server_mining", style=discord.ButtonStyle.blurple)
+    async def button_callback(self, button, interaction):
+        usuarios = [user['_id'] for user in miningdb.find({'type':'user'})]
+        if not button.user.id in usuarios:
+            miningdb.insert_one({'_id':button.user.id,'type':'user','game_nick':'NotSet'})
+            await button.response.send_message("¡Ya estás inscrit@ al server! , cuando se inicie se te notificará y se te informará como acceder. <a:emoji_name:1049804966627393567>", ephemeral=True)
+            await update_lista()
+            role = get(button.guild.roles, id=1047818594693697619)
+            await button.user.add_roles(role)
+                        
+        else:
+            #await update_lista()
             await button.response.send_message("¡Ya estás inscrit@ al server! <a:emoji_name:1049804966627393567>", ephemeral=True)
             return
 
@@ -144,7 +164,8 @@ class btn_reiniciar_server(discord.ui.View):
 class server_mining(commands.Cog):
     def __init__(self, client):
         self.client = client
-        client.add_view(btn_server_mining()) 
+        client.add_view(btn_server_mining())
+        client.add_view(btn_server_mining2())
         client.add_view(btn_reiniciar_server()) 
 
       
@@ -209,7 +230,7 @@ class server_mining(commands.Cog):
             usuarios = []
             for usuario in miningdb.find({"type":"user"}):
                 usuarios.append(usuario)
-            embed = discord.Embed(title="<a:emoji_name:1050058902852620369> WHITELIST SERVER VII ABIERTA <a:emoji_name:1050058902852620369>",description=f"Jugadores inscritos: {len(usuarios)}",color=0x5555FF)
+            embed = discord.Embed(title="<a:emoji_name:1049804966627393567> ⬇️ WHITELIST SERVER IX ABIERTA ⬇️ <a:emoji_name:1049804966627393567>",description=f"Jugadores inscritos: {len(usuarios)}",color=0x5555FF)
             guild = client.get_guild(1006149775038627860)
             for usuario in usuarios:
                 if guild.get_member(usuario['_id']) is not None: #esta en el server    
@@ -220,7 +241,7 @@ class server_mining(commands.Cog):
                     miningdb.delete_one({'_id':usuario['_id']})
                     
             channel = client.get_channel(1047988791199137902)
-            mensaje = await channel.fetch_message(1048192302012702780)
+            mensaje = await channel.fetch_message(1250495448238653482)
             await mensaje.edit(embed=embed)
             
             
@@ -349,6 +370,13 @@ class server_mining(commands.Cog):
             await ctx.send(f'**Hay ``{len(messages)}`` mods en el canal <#1048676891902611496>**')
 
 
+        
+        
+        @client.command()
+        async def inscripción_server(ctx):
+            return
+            embed = discord.Embed(title="⬇️ WHITELIST SERVER IX ABIERTA ⬇️",description="Jugadores inscritos: 0",color=0x5555FF)
+            message = await ctx.send(embed=embed, view=btn_server_mining2())
 
 
 
@@ -379,7 +407,7 @@ async def setup(client):
     
 def update_whitelist(name,old):
     data = {"grant_type": "client_credentials","client_id": os.getenv('PUFFER_CLIENT_ID'),"client_secret": os.getenv('PUFFER_TOKEN')}
-    r = requests.post(f"https://servers.tabernagogorra.eu/oauth2/token", data=data)    
+    r = requests.post(f"https://servers.tabernagogorra.cat/oauth2/token", data=data)    
     new_whitelist = []
     for usuario in miningdb.find({'type':'user'}):
         user_ui = requests.get(f"http://tools.glowingmines.eu/convertor/nick/{usuario['game_nick']}").json()
@@ -390,20 +418,20 @@ def update_whitelist(name,old):
 
     headers = {'accept': 'application/json','Content-Type': 'application/json','Authorization':"Bearer " + r.json()["access_token"]}
     if not old == 'NotSet':
-        requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist remove {old}')
-    resp = requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist add {name}')
+        requests.post(f"https://servers.tabernagogorra.cat/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist remove {old}')
+    resp = requests.post(f"https://servers.tabernagogorra.cat/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist add {name}')
 
-    return 204
+    return resp
         
 
 
 def reiniciar_servidor_MC():
     data = {"grant_type": "client_credentials","client_id": os.getenv('PUFFER_CLIENT_ID'),"client_secret": os.getenv('PUFFER_TOKEN')}
-    r = requests.post(f"https://servers.tabernagogorra.eu/oauth2/token", data=data)
+    r = requests.post(f"https://servers.tabernagogorra.cat/oauth2/token", data=data)
     headers = {'accept': 'application/json','Content-Type': 'application/json','Authorization':"Bearer " + r.json()["access_token"]}
-    requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/stop", headers=headers)
+    requests.post(f"https://servers.tabernagogorra.cat/proxy/daemon/server/{mcserver}/stop", headers=headers)
     time.sleep(0.3)
-    resp = requests.post(f"https://servers.tabernagogorra.eu/proxy/daemon/server/{mcserver}/start", headers=headers)
+    resp = requests.post(f"https://servers.tabernagogorra.cat/proxy/daemon/server/{mcserver}/start", headers=headers)
     return 204
   
   
@@ -418,8 +446,3 @@ def reiniciar_servidor_MC():
   
         
     
-"""        @client.command()
-        async def inscripción_server(ctx):
-            return
-            embed = discord.Embed(title="⬇️ WHITELIST SERVER VII ABIERTA ⬇️",description="Jugadores inscritos: 0",color=0x5555FF)
-            message = await ctx.send(embed=embed, view=btn_server_mining())"""

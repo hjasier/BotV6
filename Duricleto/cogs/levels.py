@@ -56,8 +56,8 @@ async def process_level_system(message):
 async def levelear_user(name,lvl):
     #await client.change_presence(activity=discord.Game("{name} ha subido a lvl {lvl}"))
     return
-        
-        
+      
+    
         
         
 #-----------------------------------------------------------------------------------------------------------------        
@@ -98,7 +98,10 @@ class levels(commands.Cog, name="levels"):
                   break
                 
               year = str(now.year)
-                
+              
+              # Si 'year' no existe, lo inicializa en 0
+              cur_t.setdefault(year, 0)
+              
               cur_t[year] =  cur_t[year]+diferencia
               usersdb.update_one({'_id':member.id},{"$set":{'tiempo_en_llamada':cur_t,'last_vc':0,'xp':cur_xp,'level':level}})
               vozconxdatadb.insert_one({'user_id':member.id,'join':join,'leave':now})
@@ -128,7 +131,8 @@ class levels(commands.Cog, name="levels"):
       lvl_xp = (5 * ((cur_lvl)** 2) + (50 * (cur_lvl+1)) + 100)
       cur_lvl_xp = cur_xp - t_req_xp
 
-      cur_lvl_xp_compl = round(lvl_xp-(lvl_xp-cur_lvl_xp),2) 
+      cur_lvl_xp_compl = round(lvl_xp-(lvl_xp-cur_lvl_xp),2)
+      cur_lvl_xp_formateada =  cur_lvl_xp_compl
       user_xp = round(cur_xp,2) 
 
       if cur_lvl_xp_compl > 1000:
@@ -208,7 +212,6 @@ class levels(commands.Cog, name="levels"):
         background.text((244, 100), str(member.name), font=unisansbold, color=color_datos)#Nombre Grande
 
       #background.rectangle((526, 104), width=383, height=83, fill="white",radius=34)#Rectangulo Datos
-      
 
       background.text((560, 129), f"#{user_rank+1}", font=unisansbold2, color=color_datos) #Posición en el ranking
       background.text((686, 129), f"{cur_lvl}", font=unisansbold2, color=color_datos) #Nivel user
@@ -223,7 +226,21 @@ class levels(commands.Cog, name="levels"):
 
     años_choices = [
         app_commands.Choice(name='2023', value=0),
+        app_commands.Choice(name='2024', value=1),
     ]
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @commands.hybrid_command(name="vozrank",description="Te envia tus estadístiacas en el canal barra",)
     @app_commands.choices(año=años_choices) 
@@ -231,24 +248,27 @@ class levels(commands.Cog, name="levels"):
       if not member:  
         member = ctx.message.author  
       if not año:
-         año = "2023"
+         año = str(datetime.datetime.now().year)
       else:
         año = año.name
       esperamsg = await ctx.send('<a:emoji_name:1058417728664387624>')
       
       
       for data in usersdb.find({'_id':member.id}):
-        print(data['tiempo_en_llamada'])
         tiempo_en_llamada = data['tiempo_en_llamada'][año]
         color_borde = '#FFFFFF'
-
+        try:
+          tiempo_en_llamada = data['tiempo_en_llamada'][año]
+        except KeyError:
+          tiempo_en_llamada = 0  # O cualquier valor predeterminado que desees
+      
       días = int(tiempo_en_llamada/60/60/24)
       horas = int(tiempo_en_llamada/3600-(días*24))
       minutos = int(tiempo_en_llamada/60 - horas*60 - días*24*60)
       segundos = int(tiempo_en_llamada - horas*3600 - días*24*3600 - minutos*60)
        
       
-      user_rank = list(reversed(sorted([users_data['tiempo_en_llamada']['2023'] for users_data in usersdb.find()]))).index(tiempo_en_llamada) +1
+      user_rank = list(reversed(sorted([users_data['tiempo_en_llamada'].get(año,0) for users_data in usersdb.find()]))).index(tiempo_en_llamada) +1
       
 
       t_req_xp = 0
@@ -257,8 +277,7 @@ class levels(commands.Cog, name="levels"):
       if días == 1:
         dias_label = 'DÍA'
         
-      response = requests.get('https://media.discordapp.net/attachments/718522569820602471/1058806013148540938/Dance_To_Forget.jpg?width=1100&height=619')
-      backimg = Image.open(BytesIO(response.content))
+      backimg = Image.open("/home/bot/BotV6/Duricleto/cogs/archivos/media/fondoVozrank.jpg")
       background = Editor(backimg)
       sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+tgicono.png")
       profile = await load_image_async(str(member.avatar))
@@ -287,7 +306,7 @@ class levels(commands.Cog, name="levels"):
       background.text((400, 380), f"{horas} horas", font=unisansbold2, color='#fff')
       background.text((400, 425), f"{minutos} minutos", font=unisansbold2, color='#fff')
       background.text((400, 475), f"{segundos} segundos ", font=unisansbold2, color='#fff')
-      background.text((750, 505), str(f'Desde 01/01/2023'), font=unisansmall, color='#fff')
+      background.text((750, 505), str(f'Desde 01/01/{año}'), font=unisansmall, color='#fff')
 
       background.text((137, 195), str(f'{días}'), font=unisansbold_grande, color='#F5FF52')
       background.text((97, 315), str(f'{dias_label}'), font=unisansbold_grande, color='#F5FF52')
@@ -305,14 +324,15 @@ class levels(commands.Cog, name="levels"):
     async def editar_rank(self, ctx: Context):
         random_id = ''.join(random.choice(string.ascii_lowercase) for i in range(6))
         usersdb.update_one({'_id':ctx.author.id},{"$set":{'rank_passw':random_id,'name':ctx.author.name,'avatar':str(ctx.author.avatar)}})
-        await ctx.author.send(f'https://embed.tabernagogorra.eu/personalizar_rank/{random_id}/{ctx.author.id}')
+        await ctx.author.send(f'https://embed.tabernagogorra.cat/personalizar_rank/{random_id}/{ctx.author.id}')
         await ctx.send("¡link enviado!, Mira DM para continuar <a:emoji_name:1058417728664387624>", ephemeral=True)
 
 
 
     @commands.hybrid_command(name="ranklist",description="test",)
     async def ranklist(self, ctx: Context):
-      top_users = usersdb.find().sort("tiempo_en_llamada", -1).limit(10)
+      año = str(datetime.datetime.now().year)
+      top_users = usersdb.find().sort(f"tiempo_en_llamada.{año}", -1).limit(10)
       embed=discord.Embed(title="Vozrank rank del server")
       n = 0
       for user in top_users:
@@ -322,6 +342,64 @@ class levels(commands.Cog, name="levels"):
       
       
          
+
+
+
+    @commands.hybrid_command(name="vozstats",description="",)
+    async def vozstats(self, ctx: Context, *,member: discord.Member = None):
+      if not member:  
+        member = ctx.message.author  
+      esperamsg = await ctx.send('<a:emoji_name:1058417728664387624>')
+      
+      datos = list(vozconxdatadb.find({'user_id':member.id}))
+      
+      print(datos)
+      numeroConx = len(datos)
+      
+      media = round(sum((conx['leave'] - conx['join']).total_seconds() for conx in datos)/numeroConx,2)
+
+      
+ 
+     
+      #Fondo
+      response = requests.get("/home/bot/BotV6/Duricleto/cogs/archivos/media/fondoVozrank.jpg")
+      backimg = Image.open(BytesIO(response.content))
+      background = Editor(backimg)
+      
+      
+      #Branding
+      sello = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/+tgicono.png")
+      profile = await load_image_async(str(member.avatar))
+      background = Editor(background).resize((942, 550))
+      sello  = Editor(sello).resize((61, 27))
+      unisansbold_grande = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=110)
+      unisansbold_grande2 = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=140)
+      unisansbold = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=50)
+      unisansbold2 = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansBold.otf", size=36)
+      unisans = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansRegular.otf", size=32)
+      unisansmall = Font("/home/bot/BotV6/Duricleto/cogs/archivos/media/UniSansRegular.otf", size=22)
+
+      #userImg
+      profile = Editor(profile).resize((175, 175)).circle_image()
+      
+      background_extra = Editor("/home/bot/BotV6/Duricleto/cogs/archivos/media/fondoextra.png")
+      background_extra  = Editor(background_extra).resize((1300, 550))
+      background.paste(background_extra.image, (14, 14))#BACKGROUND EXTRA
+      background.paste(profile.image, (383, 100))#PERFIL
+      background.paste(sello.image, (26, 26))#+TG
+
+
+      background.text((305, 25), str(f'conx totales debug {numeroConx}'), font=unisans, color='#fff')
+      background.text((305, 25), str(f'[debug] media {media} segundos'), font=unisans, color='#fff')
+
+
+
+
+      file = File(fp=background.image_bytes, filename="vozstats.png")
+      await esperamsg.delete()
+      await ctx.send(file=file)
+
+
 
 
 async def setup(client):

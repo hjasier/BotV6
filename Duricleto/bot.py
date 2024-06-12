@@ -15,11 +15,14 @@ from cogs.server_mining import mod_suggestion_formatter
 from cogs.emojis import procesarEmoji
 from cogs.euskaraldia import check_mahi_language
 from cogs.levels import process_level_system
+from cogs.general import calc_dias_desde_7_11_2023
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 from discord.app_commands import Choice
 import re
+
+
 load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -42,11 +45,6 @@ client = Bot(command_prefix=commands.when_mentioned_or('.'), intents=intents, he
 #PARA SINCRONIZAR LOS COMANDOS DE BARRA ESTABLECER ESTO EN TRUE
 sync_comandos = True
 #-------------------------------------------------------------
-
-
-
-
-
 
 
 @client.event
@@ -96,6 +94,8 @@ async def on_message(message: discord.Message):
             await check_mahi_language(message)
     elif message.guild.id == 1006149775038627860:
         await process_level_system(message)
+    elif message.channel.id == 1176064861353017454:
+        await calc_dias_desde_7_11_2023(message)
     else:
         await client.process_commands(message)
 

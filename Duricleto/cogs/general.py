@@ -10,6 +10,17 @@ from discord.ext.commands import Context
 from discord.app_commands import Choice
 from typing import List
 import os
+from datetime import datetime
+
+
+async def calc_dias_desde_7_11_2023(message):
+    fecha_inicio = datetime(2023, 11, 7)
+    fecha_actual = datetime.now()
+    diferencia = fecha_actual - fecha_inicio
+    await message.channel.send(f"Spiderpoya ha aguantado {diferencia.days} días 🫡 ")
+    
+    
+
 
 class General(commands.Cog, name="general"):
     def __init__(self, bot):
