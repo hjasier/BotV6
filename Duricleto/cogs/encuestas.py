@@ -157,7 +157,27 @@ class EncuestaCog(commands.Cog):
         await ctx.send(embed=embed)
             
         
-                
+    @commands.hybrid_command(name="sinoreact",description="Añade :thumbsup: :thumbsdown:  al mensaje anterior")           
+    async def sinoreact(self,ctx):
+        channel = ctx.channel
+        
+        # Usar el historial del canal para obtener los últimos dos mensajes
+        messages = []
+        async for message in channel.history(limit=2):
+            messages.append(message)
+        
+        if len(messages) > 1:
+            # El primer mensaje es el comando 'vota', el segundo es el mensaje anterior
+            previous_message = messages[1]
+            
+            # Añadir las reacciones al mensaje anterior
+            await previous_message.add_reaction('👍')
+            await previous_message.add_reaction('👎')
+
+        else:
+            await ctx.send("No se encontró un mensaje anterior.")
+
+                    
            
 
 

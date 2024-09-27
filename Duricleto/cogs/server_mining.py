@@ -23,7 +23,7 @@ miningdb = cluster["database"]["mining_server2"]
 #--------------------------------------------------------
 #Esto habría que importarlo desde el main con una clase y no definirlo en cada archrivo, pero con los cogs es raro
 
-mcserver = 'nuevoserverid'
+mcserver = '8a77625d'
 
 
 
@@ -124,10 +124,27 @@ class btn_server_mining2(discord.ui.View):
         usuarios = [user['_id'] for user in miningdb.find({'type':'user'})]
         if not button.user.id in usuarios:
             miningdb.insert_one({'_id':button.user.id,'type':'user','game_nick':'NotSet'})
-            await button.response.send_message("¡Ya estás inscrit@ al server! , cuando se inicie se te notificará y se te informará como acceder. <a:emoji_name:1049804966627393567>", ephemeral=True)
+            await button.response.send_message("¡Ya estás inscrit@ al server! <a:emoji_name:1049804966627393567>", ephemeral=True)
             await update_lista()
             role = get(button.guild.roles, id=1047818594693697619)
             await button.user.add_roles(role)
+            
+            embed1=discord.Embed(title="Inauguración Server IX", description="¡¡ El server empieza oficialmente hoy, día 13 a las 20:00 !!", color=0xff00dd)
+
+            embed3=discord.Embed(title="IP DEL SERVER:  129.151.236.168", description="", color=0x23D330)
+            embed4=discord.Embed(title="VERSIÓN :  1.21", description="", color=0x23D330)
+            embed5=discord.Embed(title="UPDATES:", description="Puede que en el futuro metamos plugins o mods , será necesario tener las actualizaciones antes de entrar al server , en caso de meter mods, se facilitará un instalador y actualizador.", color=0x8823D3)
+            embed7 = discord.Embed(title="Establecer nombre ingame",description="Desde aquí podrás añadirte a la whitelist del server con el nombre que uses en minecratf",color=0x7440FF)
+            
+            
+            await button.user.send(embed=embed1)
+            await button.user.send(embed=embed3)
+            await button.user.send(embed=embed4)
+            await button.user.send(embed=embed5)
+            
+            
+            await button.user.send(embed=embed7, view=btn_establecer_nombre_whitelist())
+            
                         
         else:
             #await update_lista()
@@ -212,6 +229,7 @@ class server_mining(commands.Cog):
                     await conf.edit(embed=embed) 
                     await update_lista()
                     resp = update_whitelist(msg.content,old_name)
+                    
                     if resp == 204:
                         new_valor2 = 'Actualizado <a:emoji_name:1050058902852620369>'
                     else:
@@ -303,6 +321,21 @@ class server_mining(commands.Cog):
 
 
 
+        @client.command()
+        async def aviso_players(ctx, *, mensaje: str):
+            embed1=discord.Embed(title="Aviso Server", description=mensaje, color=0xff00dd)
+            
+            editmsg = await ctx.send('Enviando mensaje')
+            
+            c = ""
+            for user in miningdb.find({'type':'user'}):
+                c += f"{user['_id']}, "
+                await client.get_user(user['_id']).send(embed=embed1)
+                await editmsg.edit(content=f'Enviando a: [ {c} ]')
+                    
+           
+            
+            
 
        
 
@@ -325,36 +358,72 @@ class server_mining(commands.Cog):
 
         @client.command()
         async def anunciar_estreno_server_user(ctx,user:discord.Member):
-            embed1=discord.Embed(title="Inauguración Server VII", description="¡¡ El server empieza oficialmente hoy, día 25 a las 17:40 !!", color=0xff00dd)
-            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.eu/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
-            embed2.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056600080989294652/1200px-Icon-doc.png?width=599&height=756')
-            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.eu/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
-            embed3.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056601597578330212/745139.png')
+            return
+            embed1=discord.Embed(title="Inauguración Server IX", description="¡¡ El server empieza oficialmente hoy, día 13 a las 20:00 !!", color=0xff00dd)
+
+            embed3=discord.Embed(title="IP DEL SERVER:  129.151.236.168", description="", color=0x23D330)
+            embed4=discord.Embed(title="VERSIÓN :  1.21", description="", color=0x23D330)
+            embed5=discord.Embed(title="UPDATES:", description="Puede que en el futuro metamos plugins o mods , será necesario tener las actualizaciones antes de entrar al server , en caso de meter mods, se facilitará un instalador y actualizador.", color=0x8823D3)
+            
+            
             await user.send(embed=embed1)
-            await user.send(embed=embed2)
-            await user.send('https://docs.tabernagogorra.eu')
             await user.send(embed=embed3)
-            await user.send('https://docs.tabernagogorra.eu/programacion')
+            await user.send(embed=embed4)
+            await user.send(embed=embed5)
+            
+            embed7 = discord.Embed(title="Establecer nombre ingame",description="Desde aquí podrás añadirte a la whitelist del server con el nombre que uses en minecratf",color=0x7440FF)
+            await user.send(embed=embed7, view=btn_establecer_nombre_whitelist())
+            
+            
+            
+
             print(f'Enviado a {user.name}')
 
             
         @client.command()
         async def anunciar_estreno_server(ctx,):
             return
-            embed1=discord.Embed(title="Inauguración Server VII", description="¡¡ El server empieza oficialmente hoy, día 25 a las 17:40 !!", color=0xff00dd)
-            embed2=discord.Embed(title="Instrucciones Para el Acceso Al Server", url='https://docs.tabernagogorra.eu/', description="Estas son las instrucciones paso por paso para acceder al server , desde instalar minecraft hasta instalar los mods.", color=0xe1ff00)
-            embed2.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056600080989294652/1200px-Icon-doc.png?width=599&height=756')
-            embed3=discord.Embed(title="Información - Normas y Mods Primera Semana", url='https://docs.tabernagogorra.eu/programacion', description="Durante la primera semana , algunos de los mods estarán deshabilitados pese ha estar incluidos en el ModPack y en el server, para saber que mods están disponibles podeis consultar la guía semana por semana en el siguiente link", color=0x8624ff)
-            embed3.set_thumbnail(url='https://media.discordapp.net/attachments/829496216807145502/1056601597578330212/745139.png')
+            embed1=discord.Embed(title="Inauguración Server IX", description="¡¡ El server empieza oficialmente hoy, día 13 a las 20:00 !!", color=0xff00dd)
+
+            embed3=discord.Embed(title="IP DEL SERVER:  129.151.236.168", description="", color=0x23D330)
+            embed4=discord.Embed(title="VERSIÓN :  1.21", description="", color=0x23D330)
+            embed5=discord.Embed(title="UPDATES:", description="Puede que en el futuro metamos plugins o mods , será necesario tener las actualizaciones antes de entrar al server , en caso de meter mods, se facilitará un instalador y actualizador.", color=0x8823D3)
+            
+            
+            
+            
+            embed7 = discord.Embed(title="Establecer nombre ingame",description="Desde aquí podrás añadirte a la whitelist del server con el nombre que uses en minecratf",color=0x7440FF)
+            
+            
             for user in miningdb.find({'type':'user'}):
                     user = client.get_user(user['_id'])
                     await user.send(embed=embed1)
-                    await user.send(embed=embed2)
-                    await user.send('https://docs.tabernagogorra.eu')
                     await user.send(embed=embed3)
-                    await user.send('https://docs.tabernagogorra.eu/programacion')
+                    await user.send(embed=embed4)
+                    await user.send(embed=embed5)
+                    await user.send(embed=embed7, view=btn_establecer_nombre_whitelist())
                     print(f'Enviado a {user.name}')
 
+
+        @client.command()
+        async def anunciarmigracion(ctx,):
+           
+            embed1=discord.Embed(title="Migración completada", description="El server ha sido migrado a la version 1.21 - 51.0.8", color=0x00FFA2)
+
+         
+            embed5=discord.Embed(title="Instrucciones de Acceso", url='https://serverix.webflow.io/' , color=0xFF7719)
+            
+            
+            editmsg = await ctx.send('Enviando mensaje')
+            
+            c = ""
+
+           
+            for user in miningdb.find({'type':'user'}):
+                c += f"{user['_id']}, "
+                await client.get_user(user['_id']).send(embed=embed1)
+                await client.get_user(user['_id']).send(embed=embed5)
+                await editmsg.edit(content=f'Enviado a: [ {c} ]')
 
 
 
@@ -408,10 +477,10 @@ async def setup(client):
 def update_whitelist(name,old):
     data = {"grant_type": "client_credentials","client_id": os.getenv('PUFFER_CLIENT_ID'),"client_secret": os.getenv('PUFFER_TOKEN')}
     r = requests.post(f"https://servers.tabernagogorra.cat/oauth2/token", data=data)    
-    new_whitelist = []
-    for usuario in miningdb.find({'type':'user'}):
-        user_ui = requests.get(f"http://tools.glowingmines.eu/convertor/nick/{usuario['game_nick']}").json()
-        new_whitelist.append({'uuid':user_ui['offlinesplitteduuid'],'name':usuario['game_nick']})
+    # new_whitelist = []
+    # for usuario in miningdb.find({'type':'user'}):
+    #     user_ui = requests.get(f"http://tools.glowingmines.eu/convertor/nick/{usuario['game_nick']}").json()
+    #     new_whitelist.append({'uuid':user_ui['offlinesplitteduuid'],'name':usuario['game_nick']})
     
     #with open(f'/var/lib/pufferpanel/servers/{mcserver}/whitelist.json', 'w') as archivo:
         #json.dump(new_whitelist, archivo)
@@ -421,7 +490,7 @@ def update_whitelist(name,old):
         requests.post(f"https://servers.tabernagogorra.cat/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist remove {old}')
     resp = requests.post(f"https://servers.tabernagogorra.cat/proxy/daemon/server/{mcserver}/console", headers=headers,data=f'whitelist add {name}')
 
-    return resp
+    return 204
         
 
 
